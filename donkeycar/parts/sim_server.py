@@ -53,6 +53,14 @@ class SteeringServer(object):
             return 0.3
         return 0.0
 
+    def process_outputs(self, outputs):
+        if len(outputs) > 1:
+            steering, throttle = outputs
+        else:
+            steering = outputs
+            throttle = 0
+        return steering, throttle
+
     def telemetry(self, sid, data):
         if data:
             # The current steering angle of the car
@@ -71,7 +79,9 @@ class SteeringServer(object):
             if self.image_part is not None:
                 image_array = self.image_part.run(image_array)
 
-            steering, throttle = self.kpart.run(image_array)
+            outputs = self.kpart.run(image_array)
+
+            steering, throttle = self.process_outputs(outputs)
 
             #filter throttle here, as our NN doesn't always do a greate job
             throttle = self.throttle_control(last_steering, last_throttle, speed, throttle)
